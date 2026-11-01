@@ -183,6 +183,31 @@ Examples:
 
 Use a prefix that describes the type of change when appropriate.
 
+## 🤖 Automatic Issue Assignment
+
+To keep contributions organized and prevent duplicate work, this repository uses GitHub Actions for automatic issue assignment.
+
+### How to Claim an Issue
+
+1. Browse the [open issues](https://github.com/saurabhwagh01/smart-connectivity-analyser/issues).
+2. Choose an issue that matches your skills and interests.
+3. Read the issue description and check that it is open and unassigned.
+4. Comment exactly `/assign` on the issue.
+5. GitHub Actions will automatically assign the issue to you if it is available.
+6. Wait for the confirmation comment before starting work.
+
+### Important Guidelines
+
+- Use `/assign` only when you are ready to work on the issue.
+- Do not claim issues that are already assigned to another contributor.
+- Avoid duplicate work by checking existing issues and pull requests.
+- Follow the instructions and acceptance criteria in the issue description.
+- Create a pull request referencing the relevant issue when your work is ready.
+- If you cannot complete an assigned issue, inform the project maintainers so the issue can be reassigned.
+- Automatic assignment does not guarantee that a pull request will be accepted; all contributions are subject to review.
+
+Thank you for contributing to Smart Connectivity Analyser! 🚀
+
 ## 9. AI-Assisted Contributions
 
 If you use AI tools while contributing:
