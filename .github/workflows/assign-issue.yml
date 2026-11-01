@@ -24,7 +24,6 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-
             const marker = '<!-- automatic-assignment-instructions -->';
 
             const message = `${marker}
@@ -36,9 +35,9 @@ jobs:
             1. Read the issue description and contribution guidelines.
             2. Check that the issue is open and unassigned.
             3. Comment exactly \`/assign\` below.
-            4. GitHub Actions will assign the issue to you if it is available.
+            4. GitHub Actions will assign the issue if it is available and you have fewer than 3 open assigned issues.
 
-            ⚠️ Claim an issue only when you are ready to work on it. If it is already assigned, choose another available issue.
+            **Contributor limit:** You can have a maximum of 3 open issues assigned to you at a time. Close or release an issue before claiming another.
 
             Happy contributing! 🎉`;
 
@@ -57,11 +56,7 @@ jobs:
                 }
               );
 
-              const alreadyPosted = comments.some(
-                comment => comment.body.includes(marker)
-              );
-
-              if (alreadyPosted) {
+              if (comments.some(c => c.body.includes(marker))) {
                 console.log(`Instructions already exist on #${issue.number}`);
                 return;
               }
@@ -139,6 +134,35 @@ jobs:
               return;
             }
 
+            // Count this contributor's other open assigned issues.
+            const allIssues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner,
+                repo,
+                state: 'open',
+                per_page: 100
+              }
+            );
+
+            const assignedCount = allIssues.filter(item =>
+              !item.pull_request &&
+              item.number !== issue_number &&
+              item.assignees.some(
+                assignee => assignee.login === username
+              )
+            ).length;
+
+            const MAX_ISSUES = 3;
+
+            if (assignedCount >= MAX_ISSUES) {
+              await github.rest.issues.createComment({
+                ...issue,
+                body: `@${username} you already have ${assignedCount} open assigned issues. The maximum is ${MAX_ISSUES} at a time. Please complete or release an assigned issue before claiming another.`
+              });
+              return;
+            }
+
             await github.rest.issues.addAssignees({
               ...issue,
               assignees: [username]
@@ -146,5 +170,5 @@ jobs:
 
             await github.rest.issues.createComment({
               ...issue,
-              body: `@${username} has been assigned this issue. Happy contributing! 🚀`
+              body: `@${username} has been assigned this issue! You now have up to ${assignedCount + 1} of ${MAX_ISSUES} allowed open assigned issues. Happy contributing! 🚀`
             });
