@@ -20,14 +20,24 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const issue = context.issue;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
             const username = context.payload.comment.user.login;
 
             if (context.payload.comment.user.type === 'Bot') {
               return;
             }
 
-            if (context.payload.issue.assignees.length > 0) {
+            const issue = {
+              owner,
+              repo,
+              issue_number
+            };
+
+            const { data: currentIssue } =
+              await github.rest.issues.get(issue);
+
+            if (currentIssue.assignees.length > 0) {
               await github.rest.issues.createComment({
                 ...issue,
                 body: 'Sorry, this issue is already assigned. Please choose another issue.'
@@ -36,7 +46,9 @@ jobs:
             }
 
             await github.rest.issues.addAssignees({
-              ...issue,
+              owner,
+              repo,
+              issue_number,
               assignees: [username]
             });
 
