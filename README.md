@@ -220,6 +220,22 @@ Before submitting a change, where applicable:
 
 For research or performance claims, evaluate models using a reproducible test split and compare them with suitable baseline methods. Report the metrics actually obtained; do not claim accuracy or anomaly-detection performance that has not been demonstrated.
 
+### Running Tests
+
+The connectivity score calculation (`js/connectivity-score.js`) has automated tests that use Node's built-in test runner, so no packages need to be installed. Node.js 18 or newer is required.
+
+From the project root:
+
+```bash
+node --test tests/
+```
+
+On Node.js 22 or newer, pass the test file instead, because the directory form is not supported:
+
+```bash
+node --test tests/connectivity-score.test.js
+```
+
 ## 📁 Project Structure
 
 ```text
