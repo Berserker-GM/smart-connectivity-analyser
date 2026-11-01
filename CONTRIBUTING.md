@@ -116,9 +116,31 @@ Before submitting a pull request:
 2. Test the functionality affected by your changes.
 3. Check for errors in the browser console and backend terminal.
 4. Verify that existing features still work.
-5. Include relevant test results or explain any tests you could not run.
+5. Run the automated test suites and include relevant test results.
 
 Do not claim that a test passed unless you actually ran it.
+
+### Running Automated Tests
+
+#### Frontend Network Metric Formatting Tests
+
+Run the metric formatting tests before committing:
+
+```bash
+npm test
+```
+
+Or with Node directly:
+
+```bash
+node --test
+```
+
+Or via pytest:
+
+```bash
+pytest tests/test_frontend_metric_formatting.py
+```
 
 ### Testing Machine-Learning Features
 

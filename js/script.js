@@ -67,6 +67,10 @@ function formatNumber(value, decimals = 1) {
     if (
         value === null ||
         value === undefined ||
+        value === "" ||
+        typeof value === "boolean" ||
+        typeof value === "object" ||
+        (typeof value === "string" && value.trim() === "") ||
         !Number.isFinite(Number(value))
     ) {
         return "--";
@@ -75,15 +79,52 @@ function formatNumber(value, decimals = 1) {
     return Number(value).toFixed(decimals);
 }
 
+const METRIC_UNITS = {
+    download: "Mbps",
+    download_mbps: "Mbps",
+    upload: "Mbps",
+    upload_mbps: "Mbps",
+    ping: "ms",
+    ping_ms: "ms",
+    jitter: "ms",
+    jitter_ms: "ms",
+    packetLoss: "%",
+    packet_loss: "%"
+};
+
+function formatMetric(value, unit = "", decimals = 1) {
+    if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        typeof value === "boolean" ||
+        typeof value === "object" ||
+        (typeof value === "string" && value.trim() === "") ||
+        !Number.isFinite(Number(value))
+    ) {
+        return "Unavailable";
+    }
+
+    const formatted = Number(value).toFixed(decimals);
+    return unit ? `${formatted} ${unit}` : formatted;
+}
+
+function formatNetworkMetric(metricType, value, decimals = 1) {
+    const unit = METRIC_UNITS[metricType] !== undefined ? METRIC_UNITS[metricType] : "";
+    return formatMetric(value, unit, decimals);
+}
+
 
 /* =========================================================
    INITIALIZATION
    ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeApplication
-);
+if (typeof document !== "undefined") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeApplication
+    );
+}
 
 async function initializeApplication() {
 
@@ -527,39 +568,28 @@ async function runBackendNetworkQualityTest() {
         });
 
         // Update ping.
-        if (data.ping_ms !== null &&
-            data.ping_ms !== undefined) {
-            setText(
-                "ping",
-                `${formatNumber(data.ping_ms)} ms`
-            );
-        } else {
-            setText("ping", "Unavailable");
-        }
+        setText(
+            "ping",
+            formatNetworkMetric("ping", data.ping_ms)
+        );
 
         // Update jitter.
-        if (data.jitter_ms !== null &&
-            data.jitter_ms !== undefined) {
-            setText(
-                "jitter",
-                `${formatNumber(data.jitter_ms)} ms`
-            );
-        } else {
-            setText("jitter", "Unavailable");
-        }
+        setText(
+            "jitter",
+            formatNetworkMetric("jitter", data.jitter_ms)
+        );
 
         // Update packet loss without converting missing values to zero.
+        setText(
+            "packetLoss",
+            formatNetworkMetric("packetLoss", data.packet_loss)
+        );
+
         if (
-            data.packet_loss !== null &&
-            data.packet_loss !== undefined &&
-            Number.isFinite(Number(data.packet_loss))
+            data.packet_loss === null ||
+            data.packet_loss === undefined ||
+            !Number.isFinite(Number(data.packet_loss))
         ) {
-            setText(
-                "packetLoss",
-                `${formatNumber(Number(data.packet_loss))} %`
-            );
-        } else {
-            setText("packetLoss", "Unavailable");
             console.warn(
                 "Packet loss is missing or invalid:",
                 data.packet_loss
@@ -626,9 +656,10 @@ function updateCloudflareLiveResults(type) {
 
                 setText(
                     "download",
-                    `${formatNumber(
+                    formatNetworkMetric(
+                        "download",
                         currentMetrics.download
-                    )} Mbps`
+                    )
                 );
             }
 
@@ -665,9 +696,10 @@ function updateCloudflareLiveResults(type) {
 
                 setText(
                     "upload",
-                    `${formatNumber(
+                    formatNetworkMetric(
+                        "upload",
                         currentMetrics.upload
-                    )} Mbps`
+                    )
                 );
             }
 
@@ -697,7 +729,8 @@ function updateCloudflareFinalResults(
 
         if (
             download !== undefined &&
-            download !== null
+            download !== null &&
+            Number.isFinite(Number(download))
         ) {
 
             currentMetrics.download =
@@ -707,10 +740,13 @@ function updateCloudflareFinalResults(
 
             setText(
                 "download",
-                `${formatNumber(
+                formatNetworkMetric(
+                    "download",
                     currentMetrics.download
-                )} Mbps`
+                )
             );
+        } else {
+            setText("download", "Unavailable");
         }
 
     } catch (error) {
@@ -718,6 +754,7 @@ function updateCloudflareFinalResults(
         console.warn(
             "Final download unavailable."
         );
+        setText("download", "Unavailable");
     }
 
 
@@ -729,7 +766,8 @@ function updateCloudflareFinalResults(
 
         if (
             upload !== undefined &&
-            upload !== null
+            upload !== null &&
+            Number.isFinite(Number(upload))
         ) {
 
             currentMetrics.upload =
@@ -739,10 +777,13 @@ function updateCloudflareFinalResults(
 
             setText(
                 "upload",
-                `${formatNumber(
+                formatNetworkMetric(
+                    "upload",
                     currentMetrics.upload
-                )} Mbps`
+                )
             );
+        } else {
+            setText("upload", "Unavailable");
         }
 
     } catch (error) {
@@ -750,6 +791,7 @@ function updateCloudflareFinalResults(
         console.warn(
             "Final upload unavailable."
         );
+        setText("upload", "Unavailable");
     }
 
 
@@ -812,6 +854,14 @@ async function finishCombinedTest() {
     updateDiagnosis();
 
     updateAISections();
+
+    if (currentMetrics.download === null) {
+        setText("download", "Unavailable");
+    }
+
+    if (currentMetrics.upload === null) {
+        setText("upload", "Unavailable");
+    }
 
     updateSessionStatistics();
 
@@ -3080,37 +3130,60 @@ function setTestMessage(
    DEBUG API
    ========================================================= */
 
-window.smartConnectivity = {
+if (typeof window !== "undefined") {
+    window.formatNumber = formatNumber;
+    window.formatMetric = formatMetric;
+    window.formatNetworkMetric = formatNetworkMetric;
 
-    getCurrentNetworkData() {
+    window.smartConnectivity = {
 
-        return {
-            ...currentMetrics,
+        formatNumber,
 
-            backendQuality,
+        formatMetric,
 
-            location:
-                currentLocation,
+        formatNetworkMetric,
 
-            sessionTests
-        };
-    },
+        METRIC_UNITS,
 
+        getCurrentNetworkData() {
 
-    checkBackendHealth,
+            return {
+                ...currentMetrics,
 
+                backendQuality,
 
-    runBackendNetworkQualityTest,
+                location:
+                    currentLocation,
 
-
-    loadNetworkHistory,
-
-
-    detectCurrentLocation,
-
-
-    saveCurrentLocation,
+                sessionTests
+            };
+        },
 
 
-    findBetterConnectionArea
-};
+        checkBackendHealth,
+
+
+        runBackendNetworkQualityTest,
+
+
+        loadNetworkHistory,
+
+
+        detectCurrentLocation,
+
+
+        saveCurrentLocation,
+
+
+        findBetterConnectionArea
+    };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        formatNumber,
+        formatMetric,
+        formatNetworkMetric,
+        METRIC_UNITS
+    };
+}
