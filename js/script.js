@@ -37,6 +37,9 @@ let currentMetrics = {
    ========================================================= */
 
 function $(id) {
+    if (typeof document === "undefined") {
+        return null;
+    }
     return document.getElementById(id);
 }
 
@@ -63,16 +66,23 @@ function setProgress(id, value) {
     element.style.width = `${safeValue}%`;
 }
 
-function formatNumber(value, decimals = 1) {
+function isValidMetricNumber(value) {
     if (
         value === null ||
         value === undefined ||
         value === "" ||
         typeof value === "boolean" ||
         typeof value === "object" ||
-        (typeof value === "string" && value.trim() === "") ||
-        !Number.isFinite(Number(value))
+        (typeof value === "string" && value.trim() === "")
     ) {
+        return false;
+    }
+
+    return Number.isFinite(Number(value));
+}
+
+function formatNumber(value, decimals = 1) {
+    if (!isValidMetricNumber(value)) {
         return "--";
     }
 
@@ -93,15 +103,7 @@ const METRIC_UNITS = {
 };
 
 function formatMetric(value, unit = "", decimals = 1) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === "" ||
-        typeof value === "boolean" ||
-        typeof value === "object" ||
-        (typeof value === "string" && value.trim() === "") ||
-        !Number.isFinite(Number(value))
-    ) {
+    if (!isValidMetricNumber(value)) {
         return "Unavailable";
     }
 
@@ -112,22 +114,6 @@ function formatMetric(value, unit = "", decimals = 1) {
 function formatNetworkMetric(metricType, value, decimals = 1) {
     const unit = METRIC_UNITS[metricType] !== undefined ? METRIC_UNITS[metricType] : "";
     return formatMetric(value, unit, decimals);
-}
-
-
-function isValidMetricNumber(value) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === "" ||
-        typeof value === "boolean" ||
-        typeof value === "object" ||
-        (typeof value === "string" && value.trim() === "")
-    ) {
-        return false;
-    }
-
-    return Number.isFinite(Number(value));
 }
 
 let applicationInitialized = false;
@@ -581,9 +567,15 @@ async function runBackendNetworkQualityTest() {
         // Store the latest backend response.
         backendQuality = data;
 
-        currentMetrics.ping = data.ping_ms;
-        currentMetrics.jitter = data.jitter_ms;
-        currentMetrics.packetLoss = data.packet_loss;
+        currentMetrics.ping = isValidMetricNumber(data.ping_ms)
+            ? Number(data.ping_ms)
+            : null;
+        currentMetrics.jitter = isValidMetricNumber(data.jitter_ms)
+            ? Number(data.jitter_ms)
+            : null;
+        currentMetrics.packetLoss = isValidMetricNumber(data.packet_loss)
+            ? Number(data.packet_loss)
+            : null;
 
         // Diagnostic: inspect the actual API and stored values.
         console.log("PACKET LOSS TRACE:", {
@@ -628,6 +620,10 @@ async function runBackendNetworkQualityTest() {
         );
 
         backendTestFinished = true;
+
+        currentMetrics.ping = null;
+        currentMetrics.jitter = null;
+        currentMetrics.packetLoss = null;
 
         setText("ping", "Unavailable");
         setText("jitter", "Unavailable");
@@ -750,6 +746,7 @@ function updateCloudflareFinalResults(
                 )
             );
         } else {
+            currentMetrics.download = null;
             setText("download", "Unavailable");
         }
 
@@ -758,6 +755,7 @@ function updateCloudflareFinalResults(
         console.warn(
             "Final download unavailable."
         );
+        currentMetrics.download = null;
         setText("download", "Unavailable");
     }
 
@@ -783,6 +781,7 @@ function updateCloudflareFinalResults(
                 )
             );
         } else {
+            currentMetrics.upload = null;
             setText("upload", "Unavailable");
         }
 
@@ -791,6 +790,7 @@ function updateCloudflareFinalResults(
         console.warn(
             "Final upload unavailable."
         );
+        currentMetrics.upload = null;
         setText("upload", "Unavailable");
     }
 
@@ -863,7 +863,17 @@ async function finishCombinedTest() {
         setText("upload", "Unavailable");
     }
 
-    updateSessionStatistics();
+    if (currentMetrics.ping === null) {
+        setText("ping", "Unavailable");
+    }
+
+    if (currentMetrics.jitter === null) {
+        setText("jitter", "Unavailable");
+    }
+
+    if (currentMetrics.packetLoss === null) {
+        setText("packetLoss", "Unavailable");
+    }
 
 
     /*
@@ -3184,6 +3194,7 @@ if (typeof window !== "undefined") {
     window.formatMetric = formatMetric;
     window.formatNetworkMetric = formatNetworkMetric;
     window.isValidMetricNumber = isValidMetricNumber;
+    window.METRIC_UNITS = METRIC_UNITS;
 }
 
 if (typeof module !== "undefined" && module.exports) {

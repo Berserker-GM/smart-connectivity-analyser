@@ -122,7 +122,7 @@ Do not claim that a test passed unless you actually ran it.
 
 ### Running Automated Tests
 
-Run the frontend metric formatting test suite:
+Run the automated test suite before submitting changes:
 
 ```bash
 npm test
@@ -134,11 +134,7 @@ Alternatively, run Node's built-in test runner directly:
 node --test
 ```
 
-Or run via pytest:
-
-```bash
-pytest tests/test_frontend_metric_formatting.py
-```
+For additional test options and instructions, see the [README.md](README.md#running-automated-tests).
 
 ### Testing Machine-Learning Features
 
