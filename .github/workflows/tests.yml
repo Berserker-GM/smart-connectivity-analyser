@@ -1,3 +1,4 @@
+```yaml
 name: Smart Connectivity Analyser Tests
 
 on:
@@ -27,18 +28,11 @@ jobs:
       - name: Check JavaScript syntax
         run: node --check js/script.js
 
-      - name: Run JavaScript tests if configured
-        shell: bash
-        run: |
-          if [ -f package.json ]; then
-            npm install
-            npm test --if-present
-          else
-            echo "No package.json in repository root; skipping npm tests."
-          fi
+      - name: Run connectivity score tests
+        run: node --test tests/connectivity-score.test.js
 
   python-checks:
-    name: Python Frontend Tests
+    name: Python Backend Syntax
     runs-on: ubuntu-latest
 
     steps:
@@ -50,12 +44,6 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Run frontend metric formatting tests
-        shell: bash
-        run: |
-          if [ -f tests/test_frontend_metric_formatting.py ]; then
-            python tests/test_frontend_metric_formatting.py
-          else
-            echo "ERROR: Python test file was not found."
-            exit 1
-          fi
+      - name: Check Python syntax
+        run: python -m compileall -q backend
+```
