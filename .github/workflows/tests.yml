@@ -1,7 +1,6 @@
-```yaml
 name: Smart Connectivity Analyser Tests
 
-on:
+'on':
   push:
     branches: [master, main]
   pull_request:
@@ -15,7 +14,6 @@ jobs:
   javascript-checks:
     name: JavaScript Syntax and Tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,7 +32,6 @@ jobs:
   python-checks:
     name: Python Backend Syntax
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,6 +41,5 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Check Python syntax
+      - name: Check Python backend syntax
         run: python -m compileall -q backend
-```
