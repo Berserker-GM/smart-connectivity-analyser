@@ -3,13 +3,9 @@ name: Smart Connectivity Analyser Tests
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [master, main]
   pull_request:
-    branches:
-      - master
-      - main
+    branches: [master, main]
   workflow_dispatch:
 
 permissions:
@@ -32,15 +28,14 @@ jobs:
       - name: Check JavaScript syntax
         run: node --check js/script.js
 
-      - name: Install dependencies and run tests
+      - name: Run JavaScript tests if configured
         shell: bash
         run: |
           if [ -f package.json ]; then
             npm install
             npm test --if-present
           else
-            echo "No root package.json found."
-            echo "Skipping npm tests; JavaScript syntax check completed."
+            echo "No package.json in repository root; skipping npm tests."
           fi
 
   python-checks:
@@ -62,7 +57,7 @@ jobs:
           if [ -f tests/test_frontend_metric_formatting.py ]; then
             python tests/test_frontend_metric_formatting.py
           else
-            echo "Test file not found: tests/test_frontend_metric_formatting.py"
+            echo "ERROR: Python test file was not found."
             exit 1
           fi
 ```
