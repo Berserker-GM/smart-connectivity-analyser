@@ -30,9 +30,8 @@ class TestFrontendNetworkMetricFormatting(unittest.TestCase):
             0,
             f"Node test runner failed with exit code {result.returncode}.\nOutput:\n{result.stdout}\nError:\n{result.stderr}"
         )
-        self.assertIn("pass 52", result.stdout)
         self.assertIn("fail 0", result.stdout)
+        self.assertIn("pass 57", result.stdout)
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -115,18 +115,44 @@ function formatNetworkMetric(metricType, value, decimals = 1) {
 }
 
 
+function isValidMetricNumber(value) {
+    if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        typeof value === "boolean" ||
+        typeof value === "object" ||
+        (typeof value === "string" && value.trim() === "")
+    ) {
+        return false;
+    }
+
+    return Number.isFinite(Number(value));
+}
+
+let applicationInitialized = false;
+
 /* =========================================================
    INITIALIZATION
    ========================================================= */
 
 if (typeof document !== "undefined") {
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeApplication
-    );
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeApplication,
+            { once: true }
+        );
+    } else {
+        initializeApplication();
+    }
 }
 
 async function initializeApplication() {
+    if (applicationInitialized) {
+        return;
+    }
+    applicationInitialized = true;
 
     setupButtons();
 
@@ -567,29 +593,23 @@ async function runBackendNetworkQualityTest() {
             packetsReceived: data.packets_received
         });
 
-        // Update ping.
+        // Update ping, jitter, and packet loss
         setText(
             "ping",
             formatNetworkMetric("ping", data.ping_ms)
         );
 
-        // Update jitter.
         setText(
             "jitter",
             formatNetworkMetric("jitter", data.jitter_ms)
         );
 
-        // Update packet loss without converting missing values to zero.
         setText(
             "packetLoss",
             formatNetworkMetric("packetLoss", data.packet_loss)
         );
 
-        if (
-            data.packet_loss === null ||
-            data.packet_loss === undefined ||
-            !Number.isFinite(Number(data.packet_loss))
-        ) {
+        if (!isValidMetricNumber(data.packet_loss)) {
             console.warn(
                 "Packet loss is missing or invalid:",
                 data.packet_loss
@@ -641,13 +661,7 @@ function updateCloudflareLiveResults(type) {
                     .getDownloadBandwidth();
 
 
-            if (
-                bandwidth !== undefined &&
-                bandwidth !== null &&
-                Number.isFinite(
-                    Number(bandwidth)
-                )
-            ) {
+            if (isValidMetricNumber(bandwidth)) {
 
                 currentMetrics.download =
                     Number(bandwidth) /
@@ -681,13 +695,7 @@ function updateCloudflareLiveResults(type) {
                     .getUploadBandwidth();
 
 
-            if (
-                bandwidth !== undefined &&
-                bandwidth !== null &&
-                Number.isFinite(
-                    Number(bandwidth)
-                )
-            ) {
+            if (isValidMetricNumber(bandwidth)) {
 
                 currentMetrics.upload =
                     Number(bandwidth) /
@@ -727,11 +735,7 @@ function updateCloudflareFinalResults(
             results.getDownloadBandwidth();
 
 
-        if (
-            download !== undefined &&
-            download !== null &&
-            Number.isFinite(Number(download))
-        ) {
+        if (isValidMetricNumber(download)) {
 
             currentMetrics.download =
                 Number(download) /
@@ -764,11 +768,7 @@ function updateCloudflareFinalResults(
             results.getUploadBandwidth();
 
 
-        if (
-            upload !== undefined &&
-            upload !== null &&
-            Number.isFinite(Number(upload))
-        ) {
+        if (isValidMetricNumber(upload)) {
 
             currentMetrics.upload =
                 Number(upload) /
@@ -2387,25 +2387,28 @@ function updateSessionStatistics() {
 
     setText(
         "averageSpeed",
-        `${formatNumber(
+        formatNetworkMetric(
+            "download",
             averageSpeed
-        )} Mbps`
+        )
     );
 
 
     setText(
         "averagePing",
-        `${formatNumber(
+        formatNetworkMetric(
+            "ping",
             averagePing
-        )} ms`
+        )
     );
 
 
     setText(
         "peakSpeed",
-        `${formatNumber(
+        formatNetworkMetric(
+            "download",
             peakSpeed
-        )} Mbps`
+        )
     );
 
 
@@ -3127,56 +3130,60 @@ function setTestMessage(
 
 
 /* =========================================================
-   DEBUG API
+   DEBUG API & EXPORTS
    ========================================================= */
 
+const smartConnectivity = {
+
+    formatNumber,
+
+    formatMetric,
+
+    formatNetworkMetric,
+
+    isValidMetricNumber,
+
+    METRIC_UNITS,
+
+    getCurrentNetworkData() {
+
+        return {
+            ...currentMetrics,
+
+            backendQuality,
+
+            location:
+                currentLocation,
+
+            sessionTests
+        };
+    },
+
+
+    checkBackendHealth,
+
+
+    runBackendNetworkQualityTest,
+
+
+    loadNetworkHistory,
+
+
+    detectCurrentLocation,
+
+
+    saveCurrentLocation,
+
+
+    findBetterConnectionArea
+};
+
 if (typeof window !== "undefined") {
+    window.smartConnectivity = smartConnectivity;
     window.formatNumber = formatNumber;
     window.formatMetric = formatMetric;
     window.formatNetworkMetric = formatNetworkMetric;
-
-    window.smartConnectivity = {
-
-        formatNumber,
-
-        formatMetric,
-
-        formatNetworkMetric,
-
-        METRIC_UNITS,
-
-        getCurrentNetworkData() {
-
-            return {
-                ...currentMetrics,
-
-                backendQuality,
-
-                location:
-                    currentLocation,
-
-                sessionTests
-            };
-        },
-
-
-        checkBackendHealth,
-
-
-        runBackendNetworkQualityTest,
-
-
-        loadNetworkHistory,
-
-
-        detectCurrentLocation,
-
-
-        saveCurrentLocation,
-
-
-        findBetterConnectionArea
-    };
+    window.isValidMetricNumber = isValidMetricNumber;
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -3184,6 +3191,8 @@ if (typeof module !== "undefined" && module.exports) {
         formatNumber,
         formatMetric,
         formatNetworkMetric,
-        METRIC_UNITS
+        isValidMetricNumber,
+        METRIC_UNITS,
+        smartConnectivity
     };
 }

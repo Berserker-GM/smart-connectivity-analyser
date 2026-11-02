@@ -15,6 +15,7 @@ const {
     formatNumber,
     formatMetric,
     formatNetworkMetric,
+    isValidMetricNumber,
     METRIC_UNITS
 } = require('../js/script.js');
 
@@ -428,6 +429,63 @@ describe('Network Metric Formatting Test Suite', () => {
 
             const unavailableBandwidth = null;
             assert.strictEqual(formatNetworkMetric('download', unavailableBandwidth), 'Unavailable');
+        });
+    });
+    /* =========================================================
+       5. isValidMetricNumber & Non-nested Formatting Verification
+       ========================================================= */
+    describe('isValidMetricNumber()', () => {
+        it('returns true for valid finite numbers and valid zero', () => {
+            assert.strictEqual(isValidMetricNumber(50.5), true);
+            assert.strictEqual(isValidMetricNumber(0), true);
+            assert.strictEqual(isValidMetricNumber(0.0), true);
+            assert.strictEqual(isValidMetricNumber('0'), true);
+            assert.strictEqual(isValidMetricNumber('12.5'), true);
+        });
+
+        it('returns false for null, undefined, empty strings, and booleans', () => {
+            assert.strictEqual(isValidMetricNumber(null), false);
+            assert.strictEqual(isValidMetricNumber(undefined), false);
+            assert.strictEqual(isValidMetricNumber(''), false);
+            assert.strictEqual(isValidMetricNumber('   '), false);
+            assert.strictEqual(isValidMetricNumber(false), false);
+            assert.strictEqual(isValidMetricNumber(true), false);
+        });
+
+        it('returns false for NaN, Infinity, objects, and non-numeric strings', () => {
+            assert.strictEqual(isValidMetricNumber(NaN), false);
+            assert.strictEqual(isValidMetricNumber(Infinity), false);
+            assert.strictEqual(isValidMetricNumber(-Infinity), false);
+            assert.strictEqual(isValidMetricNumber({}), false);
+            assert.strictEqual(isValidMetricNumber([]), false);
+            assert.strictEqual(isValidMetricNumber('Unavailable'), false);
+            assert.strictEqual(isValidMetricNumber('abc'), false);
+        });
+    });
+
+    describe('Avoiding Nested Formatting & Double Units', () => {
+        it('ensures formatNetworkMetric directly formats session metrics without manual unit appending', () => {
+            const avgSpeed = 45.2;
+            const formattedDirectly = formatNetworkMetric('download', avgSpeed);
+            assert.strictEqual(formattedDirectly, '45.2 Mbps');
+
+            // Must not double append unit
+            assert.doesNotMatch(formattedDirectly, /Mbps.*Mbps/);
+
+            // Output of formatNetworkMetric should not be passed to formatNumber
+            const pingFormatted = formatNetworkMetric('ping', 15.0);
+            assert.strictEqual(pingFormatted, '15.0 ms');
+            assert.doesNotMatch(pingFormatted, /ms.*ms/);
+        });
+
+        it('ensures zero session values do not double append units', () => {
+            const zeroSpeed = formatNetworkMetric('download', 0);
+            assert.strictEqual(zeroSpeed, '0.0 Mbps');
+            assert.doesNotMatch(zeroSpeed, /Mbps.*Mbps/);
+
+            const zeroPing = formatNetworkMetric('ping', 0);
+            assert.strictEqual(zeroPing, '0.0 ms');
+            assert.doesNotMatch(zeroPing, /ms.*ms/);
         });
     });
 });

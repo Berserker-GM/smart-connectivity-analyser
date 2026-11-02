@@ -122,21 +122,19 @@ Do not claim that a test passed unless you actually ran it.
 
 ### Running Automated Tests
 
-#### Frontend Network Metric Formatting Tests
-
-Run the metric formatting tests before committing:
+Run the frontend metric formatting test suite:
 
 ```bash
 npm test
 ```
 
-Or with Node directly:
+Alternatively, run Node's built-in test runner directly:
 
 ```bash
 node --test
 ```
 
-Or via pytest:
+Or run via pytest:
 
 ```bash
 pytest tests/test_frontend_metric_formatting.py
@@ -205,7 +203,7 @@ Examples:
 
 Use a prefix that describes the type of change when appropriate.
 
-## 🤖 Automatic Issue Assignment
+## 9. Automatic Issue Assignment
 
 To keep contributions organized and prevent duplicate work, this repository uses GitHub Actions for automatic issue assignment.
 
@@ -230,7 +228,7 @@ To keep contributions organized and prevent duplicate work, this repository uses
 
 Thank you for contributing to Smart Connectivity Analyser! 🚀
 
-## 9. AI-Assisted Contributions
+## 10. AI-Assisted Contributions
 
 If you use AI tools while contributing:
 
@@ -243,7 +241,7 @@ If you use AI tools while contributing:
 
 If the project maintainers publish a more specific AI-use policy, follow that policy.
 
-## 10. Code of Conduct
+## 11. Code of Conduct
 
 Be respectful, welcoming, and constructive when communicating with maintainers and other contributors.
 
@@ -255,7 +253,7 @@ Be respectful, welcoming, and constructive when communicating with maintainers a
 
 Contributors are expected to maintain a collaborative and inclusive environment.
 
-## 11. Questions and Support
+## 12. Questions and Support
 
 For project-specific questions, open or comment on a relevant GitHub issue.
 
