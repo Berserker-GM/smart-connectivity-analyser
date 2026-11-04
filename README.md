@@ -193,6 +193,15 @@ Make sure the frontend's API configuration points to the local FastAPI backend. 
 
 For request schemas and interactive endpoint testing, open `/docs` while the local backend is running.
 
+`POST /api/network-test` validates its input and returns `422` with details for invalid requests:
+
+- At least one measurement (`download_mbps`, `upload_mbps`, `ping_ms`, `jitter_ms`, `packet_loss`, `connectivity_score`) is required. Any unavailable measurement may be `null`.
+- Speeds, ping, and jitter must not be negative. `packet_loss` and `connectivity_score` must be between 0 and 100.
+- `NaN`, `Infinity`, and boolean values are rejected.
+- `timestamp` must be an ISO 8601 date-time. If it is omitted, the server time is used.
+- `latitude` (-90 to 90) and `longitude` (-180 to 180) must be provided together.
+- `network_type` is limited to 50 characters.
+
 > ⚠️ **Caution:** The history deletion endpoint can permanently remove saved network history. Use it only when you intentionally want to clear the records.
 
 ## 🤖 AI Components
@@ -208,6 +217,13 @@ The application includes a Transformer Autoencoder that reconstructs network mea
 The detector has not yet been fully validated against labelled normal and anomalous examples. Threshold calibration and reproducible evaluation remain important areas for improvement.
 
 ## 🧪 Testing and Verification
+
+Run the automated API tests:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest tests
+```
 
 Before submitting a change, where applicable:
 
@@ -254,6 +270,22 @@ pytest tests/test_frontend_metric_formatting.py
 
 For research or performance claims, evaluate models using a reproducible test split and compare them with suitable baseline methods. Report the metrics actually obtained; do not claim accuracy or anomaly-detection performance that has not been demonstrated.
 
+### Running Tests
+
+The connectivity score calculation (`js/connectivity-score.js`) has automated tests that use Node's built-in test runner, so no packages need to be installed. Node.js 18 or newer is required.
+
+From the project root:
+
+```bash
+node --test tests/
+```
+
+On Node.js 22 or newer, pass the test file instead, because the directory form is not supported:
+
+```bash
+node --test tests/connectivity-score.test.js
+```
+
 ## 📁 Project Structure
 
 ```text
@@ -277,6 +309,7 @@ smart-connectivity-analyser/
 ├── index.html
 ├── package.json
 ├── requirements.txt
+├── requirements-dev.txt
 ├── README.md
 └── CONTRIBUTING.md
 ```
