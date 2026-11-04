@@ -199,7 +199,7 @@ Examples:
 
 Use a prefix that describes the type of change when appropriate.
 
-## 9. Automatic Issue Assignment
+## 🤖 Automatic Issue Assignment
 
 To keep contributions organized and prevent duplicate work, this repository uses GitHub Actions for automatic issue assignment.
 
@@ -224,7 +224,7 @@ To keep contributions organized and prevent duplicate work, this repository uses
 
 Thank you for contributing to Smart Connectivity Analyser! 🚀
 
-## 10. AI-Assisted Contributions
+## 9. AI-Assisted Contributions
 
 If you use AI tools while contributing:
 
@@ -237,7 +237,7 @@ If you use AI tools while contributing:
 
 If the project maintainers publish a more specific AI-use policy, follow that policy.
 
-## 11. Code of Conduct
+## 10. Code of Conduct
 
 Be respectful, welcoming, and constructive when communicating with maintainers and other contributors.
 
@@ -249,7 +249,7 @@ Be respectful, welcoming, and constructive when communicating with maintainers a
 
 Contributors are expected to maintain a collaborative and inclusive environment.
 
-## 12. Questions and Support
+## 11. Questions and Support
 
 For project-specific questions, open or comment on a relevant GitHub issue.
 
